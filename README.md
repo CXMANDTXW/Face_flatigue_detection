@@ -28,8 +28,8 @@ Have Python 3 installed. We need to keep the python version consistent with the 
   http://dlib.net/compile.html
   
 - On Windows:
-  For py3.7, you can download the dlib file in https://pan.baidu.com/s/1MRCDNF4ha1-cLO_oGYqXDQ,提取码：afq1
-  For other version,you can find the suitable file in https://pypi.org/simple/dlib/
+  For py3.7, you can download the dlib file in https://pan.baidu.com/s/1MRCDNF4ha1-cLO_oGYqXDQ  提取码：afq1
+  For other version,you can find the suitable file in https://pypi.org/simple/dlib/  
   Then type in command line:
   ```
   pip install XXXXX.whl
@@ -40,12 +40,12 @@ Have Python 3 installed. We need to keep the python version consistent with the 
 - Make sure the pre training files and face_detection.py are in the same directory
 
 # step 2
-For real-time detection(USB Camera)
+For real-time detection(USB Camera).Do not use -v to specify a video file.
 ```
 python face_detection.py -p shape_predictor_68_face_landmarks.dat
 
 ```
-For video detection,uncomment line 51,52 and comment line 53 in face_detection.py.
+For video detection
 ```
 python face_detection.py -p shape_predictor_68_face_landmarks.dat -v your_video.mp4
 ```
