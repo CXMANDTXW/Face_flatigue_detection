@@ -28,7 +28,7 @@ Have Python 3 installed. We need to keep the python version consistent with the 
   http://dlib.net/compile.html
   
 - On Windows:
-  For py3.7, you can download the dlib file in https://pan.baidu.com/s/1MRCDNF4ha1-cLO_oGYqXDQ  提取码：afq1
+  For py3.7, you can download the dlib file in https://pan.baidu.com/s/1MRCDNF4ha1-cLO_oGYqXDQ  提取码：afq1  
   For other version,you can find the suitable file in https://pypi.org/simple/dlib/  
   Then type in command line:
   ```
