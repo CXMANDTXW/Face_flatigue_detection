@@ -37,7 +37,7 @@ Have Python 3 installed. We need to keep the python version consistent with the 
 
 # step 1
 - We need download the pretrained file: http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2  61M
-- Make sure the pre training files and face_detection.py are in the same directory
+- Make sure the pretrained file and face_detection.py are in the same directory
 
 # step 2
 For real-time detection(USB Camera).Do not use -v to specify a video file.
