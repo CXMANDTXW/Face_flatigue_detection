@@ -3,7 +3,6 @@ from scipy.spatial import distance as dist
 from imutils.video import FileVideoStream
 from imutils.video import VideoStream
 from imutils import face_utils
-import numpy as np
 import argparse
 import imutils
 import time
@@ -14,7 +13,7 @@ import winsound
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--shape-predictor", required=True,
 	help="path to facial landmark predictor")
-ap.add_argument("-v", "--video", type=str, default="",
+ap.add_argument("-v", "--video", type=str, default=None,
 	help="path to input video file")
 args = vars(ap.parse_args())
 def mouth_aspect_ratio(mouth):
@@ -27,15 +26,19 @@ def eye_aspect_ratio(eye):
 	C = dist.euclidean(eye[0], eye[3])
 	ear = (A + B) / (2.0 * C)
 	return ear
-BINK_WARN_TIME = 1000
+BLINK_WARN_TIME = 1000
+BLINK_WARN_THRESH = 15
+NOD_WARN_THRESH = 5
+YAWN_WARN_THRESH = 4
+
 EYE_AR_THRESH = 0.2
 EYE_AR_CONSEC_FRAMES = 3
 EYE_ALTER_FRAMES = 100
 MOUTH_THRESH = 1.0
 MOUTH_CONSEC_FRAMES = 15
-# initialize the frame counters and the total number of blinks
-COUNTER = 0
-TOTAL = 0
+# initialize the frame counters and the B_TOTAL number of blinks
+B_COUNTER = 0
+B_TOTAL = 0
 M_COUNTER = 0
 M_TOTAL = 0
 N_TOTAL=0
@@ -48,9 +51,11 @@ predictor = dlib.shape_predictor(args["shape_predictor"])
 (nStart, nEnd) = face_utils.FACIAL_LANDMARKS_IDXS["nose"]
 # start the video stream thread
 print("[INFO] starting video stream thread...")
-# vs = FileVideoStream(args["video"]).start()
-# fileStream = True
-vs = VideoStream(src=0).start()
+if args['video']:
+	vs = FileVideoStream(args['video']).start()
+	fileStream = True
+else:
+	vs = VideoStream(src=0).start()
 time.sleep(1.0)
 # loop over frames from the video stream
 k=0
@@ -63,10 +68,10 @@ while True:
 
 	frame = vs.read()
 	n_number=(n_number+1)%31
-	k = (k+1)%(BINK_WARN_TIME+1)
-	if k==BINK_WARN_TIME:
+	k = (k+1)%(BLINK_WARN_TIME+1)
+	if k==BLINK_WARN_TIME:
 		status = 'Good'
-		TOTAL,M_TOTAL,N_TOTAL=0,0,0
+		B_TOTAL,M_TOTAL,N_TOTAL=0,0,0
 	frame = imutils.resize(frame, width=450)
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	# detect faces in the grayscale frame
@@ -99,17 +104,17 @@ while True:
 				M_TOTAL+=1
 			M_COUNTER = 0
 		if ear < EYE_AR_THRESH:
-			COUNTER += 1
-			if COUNTER >= EYE_ALTER_FRAMES:
-				TOTAL,k=0,0
+			B_COUNTER += 1
+			if B_COUNTER >= EYE_ALTER_FRAMES:
+				B_TOTAL,k=0,0
 				status = 'Fatigue'
 				winsound.Beep(freq, duration)  # 调用喇叭，设置声音大小，与时间长短
 		else:
-			if COUNTER >= EYE_AR_CONSEC_FRAMES:
-				TOTAL += 1
-			COUNTER = 0
-		if TOTAL>=15 or M_TOTAL>=4 or N_TOTAL>=5:
-			k, TOTAL, M_TOTAL, N_TOTAL = 0, 0, 0, 0
+			if B_COUNTER >= EYE_AR_CONSEC_FRAMES:
+				B_TOTAL += 1
+			B_COUNTER = 0
+		if B_TOTAL>=BLINK_WARN_THRESH or M_TOTAL>=YAWN_WARN_THRESH or N_TOTAL>=NOD_WARN_THRESH:
+			k, B_TOTAL, M_TOTAL, N_TOTAL = 0, 0, 0, 0
 			status = 'Fatigue'
 			winsound.Beep(freq, duration)  # 调用喇叭，设置声音大小，与时间长短
 
@@ -123,14 +128,7 @@ while True:
 			if N_Dis>20:
 				N_TOTAL+=1
 			n_pre=local_nose
-		# if N_Dis>=2:
-		# 	n_number+=1
-		# else:n_number=0
-		# if n_number==2:
-		# 	N_TOTAL+=1
-		# 	n_number=0
-		# n_pre=local_nose
-		cv2.putText(frame, "Blinks: {}".format(TOTAL), (10, 30),
+		cv2.putText(frame, "Blinks: {}".format(B_TOTAL), (10, 30),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
 		cv2.putText(frame, "Yawn: {}".format(M_TOTAL), (10, 60),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
@@ -140,8 +138,6 @@ while True:
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
 		cv2.putText(frame, "MAR: {:.2f}".format(mar), (300, 60),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-		# cv2.putText(frame, "local: {:.2f}".format(N_Dis), (300, 100),
-		# 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
 		if status=='Good':
 
 			cv2.putText(frame, "{}".format(status), (10, 150),
